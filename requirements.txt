@@ -1,0 +1,17 @@
+# Core Flask
+Flask==2.0.3
+Werkzeug==2.0.3
+itsdangerous==2.0.1
+
+# Database (SQLAlchemy 1.4.x for Flask 2.0.x compatibility)
+SQLAlchemy==1.4.46
+Flask-SQLAlchemy==2.5.1
+alembic==1.11.1
+Flask-Migrate==3.1.0
+
+
+# Configuration
+python-dotenv==0.19.0
+
+# Cors
+Flask-Cors==5.0.0
