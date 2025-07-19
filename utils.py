@@ -31,7 +31,6 @@ def register_swagger(app: Flask, docs_file: str) -> Flask:
         "title": "Online Library System API",
         "uiversion": 3,
         "termsOfService": None,
-        "favicon": "https://rdi-eg.ai/wp-content/uploads/2020/10/cropped-icon-32x32.png",
     }
 
     swagger_config = Swagger.DEFAULT_CONFIG

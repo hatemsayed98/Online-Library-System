@@ -16,7 +16,7 @@ class BookService:
         db.session.commit()
         return book
 
-    def get_all_books(self, filters=None):
+    def get_all_books(self, page=1, per_page=10, filters=None):
         query = Book.query
 
         if filters:
@@ -31,7 +31,20 @@ class BookService:
             if "author" in filters:
                 query = query.filter(Book.author.ilike(f"%{filters['author']}%"))
 
-        return query.all()
+        query = query.order_by(Book.id)
+
+        pagination = query.paginate(
+            page=page,
+            per_page=per_page,
+            error_out=False,
+        )
+
+        return {
+            "page": pagination.page,
+            "size": pagination.per_page,
+            "total": pagination.total,
+            "books": [book.to_dict() for book in pagination.items],
+        }
 
     def get_book_by_id(self, id):
         return Book.query.filter_by(id=id).first()

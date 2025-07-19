@@ -1,5 +1,8 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
+from marshmallow import ValidationError
+
+from books.validations import BookQuerySchema
 from .services import BookService
 
 books_bp = Blueprint("books", __name__, url_prefix="/api/books")
@@ -7,9 +10,22 @@ service = BookService()
 
 
 @books_bp.route("", methods=["GET"])
-def get_books():
-    books = service.get_all_books()
-    return jsonify([book.to_dict() for book in books])
+def get_books_simple():
+    schema = BookQuerySchema()
+
+    try:
+        params = schema.load(request.args)
+    except ValidationError as err:
+        return jsonify({"errors": err.messages}), 400
+
+    page = params.pop("page")
+    size = params.pop("size")
+    filters = {k: v for k, v in params.items() if v is not None}
+
+    result = service.get_all_books(page=page, per_page=size, filters=filters)
+    
+    return jsonify(result)
+
 
 
 @books_bp.route("", methods=["POST"])
