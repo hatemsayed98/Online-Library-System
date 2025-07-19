@@ -1,0 +1,16 @@
+.idea
+.git
+.dockerignore
+.pre-commit-config.yaml
+Dockerfile
+pytest.ini
+tests
+venv
+.venv
+release/
+dev-env
+*.log
+
+.git/
+*ockerfile
+__pycache__
