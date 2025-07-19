@@ -20,7 +20,7 @@ def sign_up():
         return jsonify({"message": "Email already registered"}), 409
 
     try:
-        new_user = user_service.create_user(
+        new_user = service.create_user(
             email=data["email"], password=data["password"]
         )
 
