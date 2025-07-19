@@ -18,3 +18,8 @@ python-dotenv==0.19.0
 
 # Cors
 Flask-Cors==5.0.0
+
+# Documentation
+flasgger==0.9.7.1
+PyYAML==6.0
+

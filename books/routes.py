@@ -52,7 +52,7 @@ def delete_book(book_id):
     try:
         success = service.delete_book(book_id)
         if not success:
-            return jsonify({"message": "Book not found"}), 404
+            return jsonify({"message": "Not found"}), 404
 
         return "", 204
     except Exception as e:

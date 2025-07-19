@@ -1,0 +1,661 @@
+swagger: "2.0"
+info:
+  title: "Online Library System API"
+  description: "API Documentation for Online Library System"
+
+consumes:
+  - application/json
+produces:
+  - application/json
+
+securityDefinitions:
+  BearerAuth:
+    type: apiKey
+    name: Authorization
+    in: header
+    description: "JWT Authorization header using the Bearer scheme. Example: 'Bearer {token}'"
+
+security:
+  - BearerAuth: []
+
+paths:
+  /api/users/signUp:
+    post:
+      tags:
+        - "Authentication"
+      summary: "User registration"
+      description: "Register a new user account"
+      security: []
+      parameters:
+        - in: body
+          name: user_data
+          description: "User registration data"
+          required: true
+          schema:
+            type: object
+            required:
+              - name
+              - email
+              - password
+            properties:
+              name:
+                type: string
+                example: "John Doe"
+                description: "User's full name"
+                minLength: 1
+                maxLength: 100
+              email:
+                type: string
+                format: email
+                example: "john.doe@library.com"
+                description: "User's email address"
+              password:
+                type: string
+                format: password
+                example: "securepassword123"
+                description: "User's password"
+                minLength: 6
+      responses:
+        201:
+          description: "User registered successfully"
+          schema:
+            type: object
+            properties:
+              id:
+                type: integer
+                example: 1
+                description: "User's unique identifier"
+              name:
+                type: string
+                example: "John Doe"
+                description: "User's full name"
+              email:
+                type: string
+                format: email
+                example: "john.doe@library.com"
+                description: "User's email address"
+        400:
+          description: "Bad request - Missing required fields"
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "Missing required fields (name, email, password)"
+        409:
+          description: "Conflict - Email already registered"
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "Email already registered"
+        500:
+          description: "Internal server error - Registration failed"
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "Registration failed"
+
+  /api/users/login:
+    post:
+      tags:
+        - "Authentication"
+      summary: "User login"
+      description: "Authenticate user and return JWT token"
+      security: []
+      parameters:
+        - in: body
+          name: credentials
+          description: "User login credentials"
+          required: true
+          schema:
+            type: object
+            required:
+              - email
+              - password
+            properties:
+              email:
+                type: string
+                format: email
+                example: "john.doe@library.com"
+                description: "User's email address"
+              password:
+                type: string
+                format: password
+                example: "securepassword123"
+                description: "User's password"
+      responses:
+        200:
+          description: "Login successful"
+          schema:
+            type: object
+            properties:
+              access_token:
+                type: string
+                example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                description: "JWT access token"
+              user_id:
+                type: integer
+                example: 1
+                description: "User's unique identifier"
+              name:
+                type: string
+                example: "John Doe"
+                description: "User's full name"
+        400:
+          description: "Bad request - Missing email or password"
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "Missing email or password"
+        401:
+          description: "Invalid credentials"
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "Invalid credentials"
+
+  /api/users/profile:
+    get:
+      tags:
+        - "User Profile"
+      summary: "Get authenticated user's profile"
+      description: "Returns the profile information of the currently authenticated user"
+      produces:
+        - application/json
+      responses:
+        200:
+          description: "Profile retrieved successfully"
+          schema:
+            type: object
+            properties:
+              id:
+                type: integer
+                example: 1
+                description: "User's unique identifier"
+              name:
+                type: string
+                example: "John Doe"
+                description: "User's full name"
+              email:
+                type: string
+                format: email
+                example: "john.doe@library.com"
+                description: "User's email address"
+              created_at:
+                type: string
+                format: date-time
+                example: "2023-07-18T12:34:04"
+                description: "Account creation timestamp"
+        401:
+          description: "Unauthorized - Invalid or missing token"
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "Missing Authorization Header"
+        404:
+          description: "User not found"
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "User not found"
+        422:
+          description: "Invalid token"
+          schema:
+            type: object
+            properties:
+              msg:
+                type: string
+                example: "Invalid token"
+
+    patch:
+      tags:
+        - "User Profile"
+      summary: "Update authenticated user's profile"
+      description: "Update user's name, email, or password. Requires current password when changing password."
+      parameters:
+        - in: body
+          name: profile_data
+          description: "Profile data to update (all fields are optional)"
+          required: true
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                example: "John Updated"
+                description: "New name for the user"
+                minLength: 1
+                maxLength: 100
+              email:
+                type: string
+                format: email
+                example: "john.updated@library.com"
+                description: "New email address"
+              password:
+                type: string
+                format: password
+                example: "newsecurepassword123"
+                description: "New password (requires current_password)"
+                minLength: 6
+              current_password:
+                type: string
+                format: password
+                example: "oldsecurepassword123"
+                description: "Current password (required when updating password)"
+      responses:
+        200:
+          description: "Profile updated successfully"
+          schema:
+            type: object
+            properties:
+              id:
+                type: integer
+                example: 1
+                description: "User's unique identifier"
+              name:
+                type: string
+                example: "John Updated"
+                description: "Updated user's full name"
+              email:
+                type: string
+                format: email
+                example: "john.updated@library.com"
+                description: "Updated user's email address"
+              message:
+                type: string
+                example: "Profile updated successfully"
+                description: "Success message"
+        400:
+          description: "Bad request - Current password required when updating password"
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "Current password required"
+        401:
+          description: "Unauthorized - Current password is incorrect or missing token"
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "Current password is incorrect"
+        404:
+          description: "User not found"
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "User not found"
+        409:
+          description: "Conflict - Email already in use"
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "Email already in use"
+        500:
+          description: "Internal server error"
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "Database error message"
+
+  /api/books:
+    get:
+      tags:
+        - "Books Management"
+      summary: "Get all books"
+      description: "Retrieve a list of all books in the library"
+      responses:
+        200:
+          description: "Books retrieved successfully"
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/Book"
+        500:
+          description: "Internal server error"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+    post:
+      tags:
+        - "Books Management"
+      summary: "Create a new book"
+      description: "Add a new book to the library (requires authentication)"
+      parameters:
+        - in: body
+          name: book_data
+          description: "Book information"
+          required: true
+          schema:
+            $ref: "#/definitions/BookCreate"
+      responses:
+        201:
+          description: "Book created successfully"
+          schema:
+            $ref: "#/definitions/Book"
+        400:
+          description: "Bad request - Invalid book data"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        401:
+          description: "Unauthorized - Authentication required"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "Internal server error"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+  /api/books/{id}:
+    get:
+      tags:
+        - "Books Management"
+      summary: "Get book by ID"
+      description: "Retrieve a specific book by its ID"
+      parameters:
+        - in: path
+          name: id
+          type: integer
+          required: true
+          description: "Book ID"
+          example: 1
+      responses:
+        200:
+          description: "Book retrieved successfully"
+          schema:
+            $ref: "#/definitions/Book"
+        404:
+          description: "Not found"
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "Not found"
+        500:
+          description: "Internal server error"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+  /api/books/{book_id}:
+    patch:
+      tags:
+        - "Books Management"
+      summary: "Update book"
+      description: "Update an existing book's information (requires authentication)"
+      parameters:
+        - in: path
+          name: book_id
+          type: integer
+          required: true
+          description: "Book ID to update"
+          example: 1
+        - in: body
+          name: book_data
+          description: "Book data to update (all fields are optional)"
+          required: true
+          schema:
+            $ref: "#/definitions/BookUpdate"
+      responses:
+        200:
+          description: "Book updated successfully"
+          schema:
+            $ref: "#/definitions/Book"
+        400:
+          description: "Bad request - Invalid data"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        401:
+          description: "Unauthorized - Authentication required"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        404:
+          description: "Not found"
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "Not found"
+        500:
+          description: "Internal server error"
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "Something wrong happened"
+
+    delete:
+      tags:
+        - "Books Management"
+      summary: "Delete book"
+      description: "Delete a book from the library (requires authentication)"
+      parameters:
+        - in: path
+          name: book_id
+          type: integer
+          required: true
+          description: "Book ID to delete"
+          example: 1
+      responses:
+        204:
+          description: "Book deleted successfully (no content)"
+        401:
+          description: "Unauthorized - Authentication required"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        404:
+          description: "Not found"
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "Not found"
+        500:
+          description: "Internal server error"
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "Something wrong happened"
+
+definitions:
+  Book:
+    type: object
+    properties:
+      id:
+        type: integer
+        example: 1
+        description: "Book's unique identifier"
+      title:
+        type: string
+        example: "The Great Gatsby"
+        description: "Book title"
+      author:
+        type: string
+        example: "F. Scott Fitzgerald"
+        description: "Book author"
+      price:
+        type: number
+        format: float
+        example: 15.99
+        description: "Book price"
+      created_at:
+        type: string
+        format: date-time
+        example: "2023-07-18T12:34:04"
+        description: "Book creation timestamp"
+
+  BookCreate:
+    type: object
+    required:
+      - title
+      - author
+      - price
+    properties:
+      title:
+        type: string
+        example: "The Great Gatsby"
+        description: "Book title"
+        minLength: 1
+        maxLength: 100
+      author:
+        type: string
+        example: "F. Scott Fitzgerald"
+        description: "Book author"
+        minLength: 1
+        maxLength: 100
+      price:
+        type: number
+        format: float
+        example: 15.99
+        description: "Book price"
+        minimum: 0
+        exclusiveMinimum: true
+
+  BookUpdate:
+    type: object
+    properties:
+      title:
+        type: string
+        example: "The Great Gatsby - Updated Edition"
+        description: "Updated book title"
+        minLength: 1
+        maxLength: 100
+      author:
+        type: string
+        example: "F. Scott Fitzgerald"
+        description: "Updated book author"
+        minLength: 1
+        maxLength: 100
+      price:
+        type: number
+        format: float
+        example: 19.99
+        description: "Updated book price"
+        minimum: 0
+        exclusiveMinimum: true
+
+  User:
+    type: object
+    properties:
+      id:
+        type: integer
+        example: 1
+        description: "User's unique identifier"
+      name:
+        type: string
+        example: "John Doe"
+        description: "User's full name"
+      email:
+        type: string
+        format: email
+        example: "john.doe@library.com"
+        description: "User's email address"
+      created_at:
+        type: string
+        format: date-time
+        example: "2023-07-18T12:34:04"
+        description: "Account creation timestamp"
+
+  UserRegistration:
+    type: object
+    required:
+      - name
+      - email
+      - password
+    properties:
+      name:
+        type: string
+        example: "John Doe"
+        minLength: 1
+        maxLength: 100
+      email:
+        type: string
+        format: email
+        example: "john.doe@library.com"
+      password:
+        type: string
+        format: password
+        example: "securepassword123"
+        minLength: 6
+
+  LoginCredentials:
+    type: object
+    required:
+      - email
+      - password
+    properties:
+      email:
+        type: string
+        format: email
+        example: "john.doe@library.com"
+      password:
+        type: string
+        format: password
+        example: "securepassword123"
+
+  LoginResponse:
+    type: object
+    properties:
+      access_token:
+        type: string
+        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      user_id:
+        type: integer
+        example: 1
+      name:
+        type: string
+        example: "John Doe"
+
+  ProfileUpdate:
+    type: object
+    properties:
+      name:
+        type: string
+        example: "John Updated"
+        minLength: 1
+        maxLength: 100
+      email:
+        type: string
+        format: email
+        example: "john.updated@library.com"
+      password:
+        type: string
+        format: password
+        example: "newsecurepassword123"
+        minLength: 6
+      current_password:
+        type: string
+        format: password
+        example: "oldsecurepassword123"
+
+  ErrorResponse:
+    type: object
+    properties:
+      message:
+        type: string
+        example: "Error message description"
