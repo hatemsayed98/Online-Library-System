@@ -13,21 +13,30 @@ service = UserService()
 def sign_up():
     data = request.get_json()
 
-    if not data or not data.get("email") or not data.get("password"):
-        return jsonify({"message": "Missing required fields"}), 400
+    if (
+        not data
+        or not data.get("name")
+        or not data.get("email")
+        or not data.get("password")
+    ):
+        return (
+            jsonify({"message": "Missing required fields (name, email, password)"}),
+            400,
+        )
 
     if User.query.filter_by(email=data["email"]).first():
         return jsonify({"message": "Email already registered"}), 409
 
     try:
         new_user = service.create_user(
-            email=data["email"], password=data["password"]
+            name=data["name"], email=data["email"], password=data["password"]
         )
 
         return (
             jsonify(
                 {
                     "id": new_user.id,
+                    "name": new_user.name,  # Include name in response
                     "email": new_user.email,
                 }
             ),
@@ -36,7 +45,7 @@ def sign_up():
 
     except Exception as e:
         print(e)
-        return jsonify({"message": str("Something wrong happened")}), 500
+        return jsonify({"message": "Registration failed"}), 500
 
 
 @users_bp.route("/login", methods=["POST"])
@@ -57,6 +66,7 @@ def login():
             {
                 "access_token": access_token,
                 "user_id": user.id,
+                "name": user.name,
             }
         ),
         200,
@@ -76,6 +86,7 @@ def get_profile():
     return jsonify(
         {
             "id": user.id,
+            "name": user.name,
             "email": user.email,
             "created_at": user.created_at.isoformat() if user.created_at else None,
         }
@@ -94,6 +105,9 @@ def update_profile():
 
     data = request.get_json()
 
+    if "name" in data:
+        user.name = data["name"]
+
     if "email" in data:
         if User.query.filter(
             User.id != current_user_id, User.email == data["email"]
@@ -103,11 +117,7 @@ def update_profile():
 
     if "password" in data:
         if not data.get("current_password"):
-            return (
-                jsonify({"message": "Current password required to change password"}),
-                400,
-            )
-
+            return jsonify({"message": "Current password required"}), 400
         if not user.check_password(data["current_password"]):
             return jsonify({"message": "Current password is incorrect"}), 401
         user.set_password(data["password"])
@@ -117,6 +127,7 @@ def update_profile():
         return jsonify(
             {
                 "id": user.id,
+                "name": user.name,
                 "email": user.email,
                 "message": "Profile updated successfully",
             }
