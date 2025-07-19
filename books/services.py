@@ -1,16 +1,37 @@
+from datetime import datetime
 from .models import Book
 from extensions import db
 
 
 class BookService:
     def create_book(self, data):
-        book = Book(title=data["title"], author=data["author"], price=data["price"])
+        book = Book(
+            title=data["title"],
+            author=data["author"],
+            price=data["price"],
+            release_date=datetime.strptime(data["release_date"], "%Y-%m-%d").date(),
+            category=data.get("category"),
+        )
         db.session.add(book)
         db.session.commit()
         return book
 
-    def get_all_books(self):
-        return Book.query.all()
+    def get_all_books(self, filters=None):
+        query = Book.query
+
+        if filters:
+            if "min_price" in filters:
+                query = query.filter(Book.price >= float(filters["min_price"]))
+            if "max_price" in filters:
+                query = query.filter(Book.price <= float(filters["max_price"]))
+            if "release_after" in filters:
+                query = query.filter(Book.release_date >= filters["release_after"])
+            if "category" in filters:
+                query = query.filter(Book.category == filters["category"])
+            if "author" in filters:
+                query = query.filter(Book.author.ilike(f"%{filters['author']}%"))
+
+        return query.all()
 
     def get_book_by_id(self, id):
         return Book.query.filter_by(id=id).first()
@@ -20,7 +41,7 @@ class BookService:
         if not book:
             return None
 
-        valid_fields = {"title", "price", "author"}
+        valid_fields = {"title", "price", "author", "category", "release_date"}
         updates = {}
         if not update_data:
             return book
